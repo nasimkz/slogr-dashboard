@@ -11,7 +11,7 @@
                         <RouterLink to="/"><img src="../../assets/group-2420.svg" alt=""></RouterLink>
                     </h1>
                     <div class="my-5">
-                        <span>Welcome to Back</span>
+                        <span>Welcome back</span>
                         <h3>Sign In to Slogr</h3>
                     </div>
                     <div class="form-style">
@@ -28,7 +28,7 @@
                                     name="password" autocomplete="new-password" v-model="this.password" required>
                             </div>
                             <div class="">
-                                <button type="submit" class="signInBtn w-100 my-5">Login In</button>
+                                <button type="submit" class="signInBtn w-100 my-5">Login</button>
                             </div>
                         </form>
                         <div class="sideline mb-2">Or Sign In With</div>
