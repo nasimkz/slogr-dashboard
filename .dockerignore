@@ -1,0 +1,8 @@
+node_modules
+dist
+.git
+.env
+.env.local
+*.md
+private.key
+cert.crt
