@@ -9,6 +9,7 @@ import SignUp from '../components/Auth/SignUp.vue';
 import Groups from '../components/Groups/Groups.vue';
 import Analytics from '../components/Analytics/Analytics.vue';
 import SentinelReports from '../components/Sentinel/SentinelReports.vue';
+import Traceroute from '../components/Traceroute/Traceroute.vue';
 ////////////////////ADMIN/////////////////////////////////////
 import Dashboard from '../components/Admin/Dashboard/Dashboard.vue'
 import CreateNewUser from '../components/Admin/CreateUser/CreateNewUser.vue'
@@ -79,6 +80,12 @@ const router = createRouter({
       path: '/sentinelReports/:id',
       name: 'SentinelReports',
       component: SentinelReports,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/traceroute',
+      name: 'Traceroute',
+      component: Traceroute,
       meta: { requiresAuth: true },
     },
     {

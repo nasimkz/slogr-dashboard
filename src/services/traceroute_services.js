@@ -7,7 +7,7 @@ const getHeaders = () => ({
     "Authorization": `Bearer ${store.getters.getToken}`
 })
 
-export async function getSessionsDetails(id){
-    const resp = await axios.get(`${base_url}/api/getsession?sid=` + id, {headers: getHeaders()})
+export async function getTraceroute(sessionId) {
+    const resp = await axios.get(`${base_url}/api/traceroute?sid=${sessionId}`, { headers: getHeaders() })
     return resp.data
 }

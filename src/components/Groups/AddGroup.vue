@@ -75,7 +75,7 @@
                     <div class="modal-footer">
                         <div class="d-flex justify-content-end">
                             <button type="button" class="modelCancelBtn" data-bs-dismiss="modal">Cancel</button>
-                            <button type="button" data-bs-dismiss="modal" @click="handleAddGroup" class="modelSaveBtn ms-2"
+                            <button type="button" @click="handleAddGroup" class="modelSaveBtn ms-2"
                                 :disabled="this.selectedSessions.length === 0">Create</button>
                         </div>
                     </div>
@@ -126,6 +126,14 @@ export default {
     },
     methods: {
         async handleAddGroup() {
+            if (!this.form.name || !this.form.name.trim()) {
+                createToast('Group name is required', {
+                    type: 'danger',
+                    position: 'top-right',
+                    transition: 'zoom',
+                });
+                return;
+            }
             const payload = {
                 name: this.form.name,
                 sessions: this.form.sessions
@@ -141,6 +149,10 @@ export default {
                     }
                 });
                 this.selectedSessions = [];
+                this.form.sessions = [];
+                const modalEl = document.getElementById('staticBackdrop');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
                 this.handleGroupList()
                 this.handleGroupsSessionsData()
                 createToast(`add Group successfully`, {

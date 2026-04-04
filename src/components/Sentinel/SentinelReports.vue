@@ -5,7 +5,7 @@
             <div class="container-fluid sentinel mt-2">
                 <div class="d-flex justify-content-end">
                     <h1 class="me-2">
-                        <RouterLink to="/sentinel"> <i class="fa-solid fa-xmark fa-xs" style="color: #d8dce2;"></i>
+                        <RouterLink to="/sessions"> <i class="fa-solid fa-xmark fa-xs" style="color: #d8dce2;"></i>
                         </RouterLink>
                     </h1>
                 </div>
@@ -18,7 +18,7 @@
                                 <h3 class="text-muted ms-3 mt-2">{{ serverData.name }} <i class="fa-solid fa-arrow-right mx-2"></i> {{ clientData.name }} </h3>
                             </div>
                             <div class="">
-                                <div class="mx-3"><RouterLink to=""><i class="fa-solid fa-rotate-right fa-rotate-270 fa-2xl"></i></RouterLink></div>
+                                <div class="mx-3"><button @click="handleRunTest" class="btn btn-link p-0" :disabled="runningTest" title="Run test now"><i class="fa-solid fa-rotate-right fa-rotate-270 fa-2xl"></i></button></div>
                             </div>
                         </div>
                     </div>
@@ -193,13 +193,15 @@ import {
 } from 'vue-router';
 import Header from '../common/Header.vue'
 import {
-    getSessionsResults
+    getSessionsResults, runSession
 } from '../../../src/services/sessions_services';
 import { getSessionsDetails } from '../../services/agents_reports_services'
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 import 'vue3-perfect-scrollbar/dist/vue3-perfect-scrollbar.css'
 import { VueSpinner } from 'vue3-spinners';
 import moment from 'moment'
+import { createToast } from 'mosha-vue-toastify';
+import 'mosha-vue-toastify/dist/style.css';
 
 export default {
     name: 'SentinelReports',
@@ -226,7 +228,8 @@ export default {
             },
             Up: [],
             DownLink:[],
-            Rtt:[]
+            Rtt:[],
+            runningTest: false
         }
     },
     mounted() {
@@ -250,6 +253,26 @@ export default {
                 console.log(error)
             } finally {
                 this.loading2 = false;
+            }
+        },
+        async handleRunTest() {
+            let id = this.$route.params.id;
+            this.runningTest = true;
+            try {
+                await runSession(id);
+                createToast('Test re-queued successfully', {
+                    type: 'success',
+                    position: 'top-right',
+                    transition: 'zoom',
+                });
+            } catch (error) {
+                createToast('Failed to re-queue test', {
+                    type: 'danger',
+                    position: 'top-right',
+                    transition: 'zoom',
+                });
+            } finally {
+                this.runningTest = false;
             }
         },
         async SessionsDetails() {

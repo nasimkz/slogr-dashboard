@@ -9,7 +9,7 @@
     <div class="position-absolute p-2">
       <div class="card bg-light" style="width: 190px; height: 260px">
         <div class="card-body">
-          <h6 class="card-title mb-0">Groups</h6>
+          <RouterLink to="/groups" class="text-decoration-none text-dark"><h6 class="card-title mb-0">Groups</h6></RouterLink>
           <hr class="hr1" />
           <perfect-scrollbar style="height: 100px">
             <!-- Use v-for to iterate over the groups -->
@@ -177,8 +177,7 @@ export default {
   async mounted() {
     var clusters = await this.handleClusters("");
     var sessions = await this.handleSessions("");
-    mapboxgl.accessToken =
-      "pk.eyJ1Ijoicmh3b3JrcyIsImEiOiJjazBmZmE0bGIwNzh3M25wMjBhOHI2em56In0.317s4zEB48T9QC33pf6sVw#13";
+    mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
     this.map = new mapboxgl.Map({
       container: "map",
       style: "mapbox://styles/mapbox/light-v11",
@@ -328,7 +327,23 @@ export default {
             }, 1000);
           } else {
             popupElement.style.display = "none";
-            this.drawLines(this.map, agentLinks);
+            const agentFeatureCollection = {
+              type: "FeatureCollection",
+              features: agentLinks.map(link => ({
+                type: "Feature",
+                geometry: {
+                  type: "LineString",
+                  coordinates: link.coordinates
+                },
+                properties: {
+                  color: link.color || 'grey',
+                  session_id: link.session_id,
+                  server: { machine_name: '', Organization: '', platform: '', location: '', Country: '' },
+                  client: { machine_name: '', Organization: '', platform: '', location: '', Country: '' }
+                }
+              }))
+            };
+            this.drawLines(this.map, agentFeatureCollection, markerId);
           }
         }, 1000);
       });

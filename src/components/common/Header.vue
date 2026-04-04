@@ -56,6 +56,12 @@
                                 <span class="mx-lg-1">Reports</span>
                             </RouterLink>
                         </li>
+                        <li class="nav-item mx-xl-1">
+                            <RouterLink class="nav-link mx-lg-1 mx-xl-1" to="/traceroute">
+                                <i class="fa-solid fa-route"></i>
+                                <span class="mx-lg-1">Traceroute</span>
+                            </RouterLink>
+                        </li>
                     </ul>
                     <!-- <div class="search-container">
                         <button class="search-button">All</button>
