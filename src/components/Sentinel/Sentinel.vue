@@ -349,7 +349,7 @@ export default {
             error: null, // data not found check
             agentError: null,
             loading: false,
-            loading2: false,
+            loading2: true,
             agentDownloadUrl: import.meta.env.VITE_AGENT_DOWNLOAD_URL || '',
             agentInstallCmd: import.meta.env.VITE_AGENT_INSTALL_CMD || ''
         }

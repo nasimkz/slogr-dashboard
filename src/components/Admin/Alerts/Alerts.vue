@@ -219,7 +219,7 @@ export default {
             profiles: [],
             selectedGroup: 'Select Group Here',
             groupsLIst: [],
-            loading: false,
+            loading: true,
             alertError: null,
             profileQuery: '',
             groupQuery: '',

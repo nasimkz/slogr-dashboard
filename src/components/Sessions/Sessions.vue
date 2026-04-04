@@ -329,7 +329,7 @@ export default {
         return {
             sessionsData: [],
             sessionsError: null,
-            loading: false,
+            loading: true,
             pages: {
                 currentPage: 1,
                 previousPage: 1,

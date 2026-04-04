@@ -362,7 +362,7 @@ export default {
         return {
             monitorData: [],
             profileError: null,
-            loading: false,
+            loading: true,
             pages: {
                 currentPage: 1,
                 previousPage: 0,
