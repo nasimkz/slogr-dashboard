@@ -5,6 +5,15 @@
     <p>No connections available</p>
   </div>
   <div id="loader" class="loader">Loading...</div>
+  <!-- Onboarding overlay: shown when no groups/agents are configured -->
+  <div v-if="!loading && !hasAgents" class="onboarding-overlay">
+    <div class="onboarding-card">
+      <i class="fa-solid fa-satellite-dish fa-3x mb-3 text-secondary"></i>
+      <h4 class="mb-2">No agents deployed yet</h4>
+      <p class="text-muted mb-3">Deploy your first agent to start monitoring network paths and SLA performance.</p>
+      <RouterLink to="/sentinel" class="btn btn-sm btn-primary">Go to Sentinel →</RouterLink>
+    </div>
+  </div>
   <div class="position-relative bg-secondary mt-md-2 ms-md-3 opacity-75">
     <div class="position-absolute p-2">
       <div class="card bg-light" style="width: 190px; height: 260px">
@@ -174,6 +183,11 @@ export default {
   components: {
     PerfectScrollbar,
     VueSpinner,
+  },
+  computed: {
+    hasAgents() {
+      return this.groups.length > 0
+    },
   },
   async mounted() {
     var clusters = await this.handleClusters("");
@@ -974,5 +988,28 @@ export default {
   border: 0;
   border-top: var(--bs-border-width) solid;
   opacity: 0.25;
+}
+
+.onboarding-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 91%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.onboarding-card {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  max-width: 360px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  pointer-events: all;
 }
 </style>

@@ -28,9 +28,18 @@
             <div class="container-fluid tableDiv">
                 <div class="card mx-md-2 mt-4 mb-5">
                     <div class="card-body">
-                        <div class="text-center m-5" v-if="loading">
-                            <VueSpinner size="80" color="#8cb63d" />
-                        </div>
+                        <LoadingState v-if="loading" />
+                        <ErrorState
+                            v-else-if="sessionsError"
+                            :message="sessionsError"
+                            :on-retry="getSessions"
+                        />
+                        <EmptyState
+                            v-else-if="!sessionsData.length"
+                            icon="fa-solid fa-diagram-project"
+                            title="No sessions yet"
+                            message="Create a session between two agents to start monitoring."
+                        />
                         <div class="table-responsive" v-else>
                             <table class="table table-striped table-hover text-center">
                                 <thead>
@@ -76,7 +85,9 @@
                                         </td>
 
                                         <td>
-                                            <p class="tableP">{{ calculateTimeDifference(data.updated_at) }} minutes ago</p>
+                                            <span :class="['badge', sessionIsStale(data.updated_at) ? 'bg-danger' : 'bg-success']">
+                                                {{ sessionFreshnessLabel(data.updated_at) }}
+                                            </span>
                                         </td>
                                         <td class="fs-5">
                                             <RouterLink :to="'/sentinelReports/' + data.id" class="text-decoration-none text-dark tableP">
@@ -206,10 +217,12 @@
                     <div class="">
                         <div class="mb-4">
                             <label for="exampleFormControlInput1" class="form-label ms-1">Form*</label>
+                            <input type="text" class="form-control mb-2" placeholder="Search agents..."
+                                :value="agentQuery" @input="onAgentSearch($event.target.value)">
                             <select v-model="selectedAgentId" class="form-select form-select-lg mb-3 custom-select"
                                 aria-label=".form-select-lg example">
                                 <option class="text-secondary" selected disabled>please select sender sentinel</option>
-                                <option v-for="agent in agents" :key="agent.id" :value="agent.id">{{ agent.name }}
+                                <option v-for="agent in filteredAgents" :key="agent.id" :value="agent.id">{{ agent.name }}
                                 </option>
                             </select>
                         </div>
@@ -219,7 +232,7 @@
                                 aria-label=".form-select-lg example">
                                 <option class="text-secondary" disabled>please select receiver sentinel
                                 </option>
-                                <option v-for="client in clients" :key="client.id" :value="client.id">{{ client.name }}
+                                <option v-for="client in filteredClients" :key="client.id" :value="client.id">{{ client.name }}
                                 </option>
                             </select>
                         </div>
@@ -230,10 +243,12 @@
                         <div v-if="showAdvancedFields">
                             <div class="mb-4">
                                 <label for="exampleFormControlInput1" class="form-label ms-1">Monitoring Profile*</label>
+                                <input type="text" class="form-control mb-2" placeholder="Search profiles..."
+                                    :value="profileQuery" @input="onProfileSearch($event.target.value)">
                                 <select v-model="selectedProfile" class="form-select form-select-lg mb-3 custom-select"
                                     aria-label=".form-select-lg example">
                                     <option class="text-secondary" disabled>select here</option>
-                                    <option v-for="profile in profiles" :key="profile.id" :value="profile.id">{{
+                                    <option v-for="profile in filteredProfiles" :key="profile.id" :value="profile.id">{{
                                         profile.name }}
                                     </option>
                                 </select>
@@ -299,8 +314,8 @@ import Header from '../common/Header.vue';
 import { sessionsList, deleteSessions, updateSessions } from '../../services/sessions_services';
 import { ProfileListForm } from '../../services/monitor_profile_Services';
 import { agentListForm } from '../../services/agent_services';
-import { VueSpinner } from 'vue3-spinners';
 import AddSessions from './AddSessions.vue';
+import { useDebounceFn } from '../../composables/useDebounceFn';
 import { RouterLink } from 'vue-router';
 import { createToast } from 'mosha-vue-toastify';
 import 'mosha-vue-toastify/dist/style.css';
@@ -308,12 +323,12 @@ export default {
     name: 'Sessions',
     components: {
         Header,
-        VueSpinner,
         AddSessions
     },
     data() {
         return {
             sessionsData: [],
+            sessionsError: null,
             loading: false,
             pages: {
                 currentPage: 1,
@@ -337,7 +352,30 @@ export default {
             current_time:null,
             selectedClientId: 'please select receiver sentinel',
             showAdvancedFields: false,
+            profileQuery: '',
+            agentQuery: '',
         }
+    },
+    created() {
+        this.onProfileSearch = useDebounceFn(function (val) { this.profileQuery = val }, 300)
+        this.onAgentSearch = useDebounceFn(function (val) { this.agentQuery = val }, 300)
+    },
+    computed: {
+        filteredProfiles() {
+            const q = this.profileQuery.trim().toLowerCase()
+            if (!q) return this.profiles
+            return this.profiles.filter(p => p.name?.toLowerCase().includes(q))
+        },
+        filteredAgents() {
+            const q = this.agentQuery.trim().toLowerCase()
+            if (!q) return this.agents
+            return this.agents.filter(a => a.name?.toLowerCase().includes(q))
+        },
+        filteredClients() {
+            const q = this.agentQuery.trim().toLowerCase()
+            if (!q) return this.clients
+            return this.clients.filter(c => c.name?.toLowerCase().includes(q))
+        },
     },
     mounted() {
         this.getSessions();
@@ -347,8 +385,9 @@ export default {
     methods: {
 
         async getSessions(page = 1) {
+            this.loading = true
+            this.sessionsError = null
             try {
-                this.loading = true
                 let res = await sessionsList(page)
                 this.current_time = res.data.current_time
                 this.sessionsData = res.data.sessions
@@ -356,7 +395,7 @@ export default {
                 this.pages.currentPage = this.pages.previousPage + 1
                 this.pages.nextPage = res?.data?.next || 0
             } catch (error) {
-                // sessions fetch failed
+                this.sessionsError = error.response?.data?.message ?? error.message ?? 'Failed to load sessions'
             } finally {
                 this.loading = false
             }
@@ -380,6 +419,23 @@ export default {
                     transition: 'zoom',
                 });
             }
+        },
+        sessionFreshnessLabel(updatedAt) {
+            if (!updatedAt) return 'Unknown'
+            const now = this.current_time ? new Date(this.current_time) : new Date()
+            const diffMs = now - new Date(updatedAt)
+            if (isNaN(diffMs) || diffMs < 0) return 'Unknown'
+            const minutes = Math.floor(diffMs / 60_000)
+            if (minutes < 1) return 'Just now'
+            if (minutes < 60) return `${minutes}m ago`
+            const hours = Math.floor(minutes / 60)
+            return hours < 24 ? `${hours}h ago` : `${Math.floor(hours / 24)}d ago`
+        },
+        sessionIsStale(updatedAt) {
+            if (!updatedAt) return true
+            const now = this.current_time ? new Date(this.current_time) : new Date()
+            const diffMs = now - new Date(updatedAt)
+            return isNaN(diffMs) || diffMs > 15 * 60_000
         },
         calculateTimeDifference(updatedAt) {
             if (!updatedAt || !this.current_time) return '—';

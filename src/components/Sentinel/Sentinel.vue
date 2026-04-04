@@ -33,9 +33,18 @@
                     <div id="col1" class="col-12">
                         <div class="card mx-md-2 mt-4 mb-5">
                             <div class="card-body">
-                                <div class="text-center m-5" v-if="loading2">
-                                    <VueSpinner size="100" color="#8cb63d" />
-                                </div>
+                                <LoadingState v-if="loading2" />
+                                <ErrorState
+                                    v-else-if="agentError"
+                                    :message="agentError"
+                                    :on-retry="() => handleSentinelListing()"
+                                />
+                                <EmptyState
+                                    v-else-if="!agents.length"
+                                    icon="fa-solid fa-satellite-dish"
+                                    title="No agents yet"
+                                    message="Deploy your first agent to start monitoring your network."
+                                />
                                 <div class="table-responsive" v-else>
                                     <table class="table table-striped table-hover text-center">
                                         <thead>
@@ -60,6 +69,8 @@
                                                 <th scope="col"><a href="#" class="tableHead" data-bs-toggle="dropdown"
                                                         aria-expanded="false">Country</a>
                                                 </th>
+                                                <th scope="col"><a href="#" class="tableHead">Last Seen</a></th>
+                                                <th scope="col"><a href="#" class="tableHead">Status</a></th>
                                                 <th scope="col"></th>
                                                 <th scope="col"></th>
                                             </tr>
@@ -83,6 +94,16 @@
                                                 </td>
                                                 <td>
                                                     <p class="tableP">{{ data.Country }}</p>
+                                                </td>
+                                                <td>
+                                                    <span :class="['badge', agentIsStale(data.updated_at) ? 'bg-danger' : 'bg-success']">
+                                                        {{ agentFreshnessLabel(data.updated_at) }}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <span :class="['badge', agentStatusBadgeClass(data.updated_at)]">
+                                                        {{ agentStatusLabel(data.updated_at) }}
+                                                    </span>
                                                 </td>
                                                 <td class="fs-5"><a href="#" class="text-decoration-none text-dark tableP"
                                                         data-bs-toggle="modal" data-bs-target="#staticBackdrop"
@@ -326,6 +347,7 @@ export default {
             selectedGridName: null,
             refSessions: [],
             error: null, // data not found check
+            agentError: null,
             loading: false,
             loading2: false,
             agentDownloadUrl: import.meta.env.VITE_AGENT_DOWNLOAD_URL || '',
@@ -351,19 +373,19 @@ export default {
             }, 2500);
         },
         async handleSentinelListing(page = 1) {
+            this.loading2 = true
+            this.agentError = null
             try {
-                this.loading2 = true
                 const respData = await agentList(page)
                 this.agents = respData.data.agents
                 this.pages.previousPage = respData.data.prev || 0
                 this.pages.currentPage = this.pages.previousPage + 1
                 this.pages.nextPage = respData.data.next || 1
             } catch (error) {
-                console.log(error)
+                this.agentError = error.response?.data?.message ?? error.message ?? 'Failed to load agents'
             } finally {
                 this.loading2 = false;
             }
-
         },
         async handleSentinelCreation() {
             if (this.addSentinel.name && this.addSentinel.agent_code) {
@@ -387,6 +409,33 @@ export default {
                     }
                 }
             }
+        },
+        agentFreshnessLabel(updatedAt) {
+            if (!updatedAt) return 'Unknown'
+            const diffMs = Date.now() - new Date(updatedAt).getTime()
+            if (isNaN(diffMs) || diffMs < 0) return 'Unknown'
+            const minutes = Math.floor(diffMs / 60_000)
+            if (minutes < 1) return 'Just now'
+            if (minutes < 60) return `${minutes}m ago`
+            const hours = Math.floor(minutes / 60)
+            return hours < 24 ? `${hours}h ago` : `${Math.floor(hours / 24)}d ago`
+        },
+        agentIsStale(updatedAt) {
+            if (!updatedAt) return true
+            const diffMs = Date.now() - new Date(updatedAt).getTime()
+            return isNaN(diffMs) || diffMs > 15 * 60_000
+        },
+        agentStatusLabel(updatedAt) {
+            if (!updatedAt) return 'Unknown'
+            const diffMs = Date.now() - new Date(updatedAt).getTime()
+            if (isNaN(diffMs) || diffMs < 0) return 'Unknown'
+            return diffMs <= 5 * 60_000 ? 'Online' : 'Offline'
+        },
+        agentStatusBadgeClass(updatedAt) {
+            const label = this.agentStatusLabel(updatedAt)
+            if (label === 'Online') return 'bg-success'
+            if (label === 'Offline') return 'bg-secondary'
+            return 'bg-warning text-dark'
         },
         handleUpdateModalData(id, name) {
             this.updateData.id = id

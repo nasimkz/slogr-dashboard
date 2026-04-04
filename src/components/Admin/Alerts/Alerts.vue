@@ -27,12 +27,18 @@
                         <div class="card mx-md-2 mt-4 mb-5" style="height: 100vh;" >
                             <div class="card-body">
                                 <div class="mt-3">
-                                    <div class="text-center m-5" v-if="loading">
-                                        <VueSpinner size="80" color="#8cb63d" />
-                                    </div>
-                                    <div class="text-center m-5" v-else-if="error">
-                                        <h3 class="text-danger">Alerts not found Add new Alert</h3>
-                                    </div>
+                                    <LoadingState v-if="loading" />
+                                    <ErrorState
+                                        v-else-if="alertError"
+                                        :message="alertError"
+                                        :on-retry="handleAllAlerts"
+                                    />
+                                    <EmptyState
+                                        v-else-if="!alertList.length"
+                                        icon="fa-solid fa-bell-slash"
+                                        title="No alerts"
+                                        message="Your network is quiet. Create an alert to get notified when SLAs are breached."
+                                    />
                                     <div class="table-responsive" v-else>
                                         <table class="table table-striped table-hover text-center">
                                             <thead>
@@ -42,6 +48,7 @@
                                                     <th scope="col"><a href="#" class="tableHead">Sla Breach Minutes</a></th>
                                                     <th scope="col"><a href="#" class="tableHead">Sla Breach Tests</a></th>
                                                     <th scope="col"><a href="#" class="tableHead">Tests Norun</a> </th>
+                                                    <th scope="col"><a href="#" class="tableHead">Investigate</a></th>
                                                     <th scope="col"></th>
                                                 </tr>
                                             </thead>
@@ -61,6 +68,11 @@
                                                     </td>
                                                     <td>
                                                         <p class="tableP">{{ data?.tests_norun }}</p>
+                                                    </td>
+                                                    <td>
+                                                        <RouterLink :to="`/sessions?group=${data.group_id}`" class="tableP text-decoration-none">
+                                                            Investigate →
+                                                        </RouterLink>
                                                     </td>
                                                     <td class="fs-5 dropstart">
                                                         <a href="#" class="text-decoration-none text-dark tableP"
@@ -115,11 +127,13 @@
                                 </div>
                                 <div class="mb-4">
                                     <label for="exampleFormControlInput1" class="form-label ms-1">Group*</label>
+                                    <input type="text" class="form-control mb-2" placeholder="Search groups..."
+                                        :value="groupQuery" @input="onGroupSearch($event.target.value)">
                                     <select v-model="selectedGroup" class="form-select form-select-lg mb-3"
                                         aria-label=".form-select-lg example">
                                         <option class="text-secondary" disabled>Select here
                                         </option>
-                                        <option v-for="group in groupsLIst" :key="group.id" :value="group.id">{{ group.name
+                                        <option v-for="group in filteredGroups" :key="group.id" :value="group.id">{{ group.name
                                         }}
                                         </option>
                                     </select>
@@ -127,10 +141,12 @@
                                 <div class="mb-4">
                                     <label for="exampleFormControlInput1" class="form-label ms-1">Monitoring
                                         Profile*</label>
+                                    <input type="text" class="form-control mb-2" placeholder="Search profiles..."
+                                        :value="profileQuery" @input="onProfileSearch($event.target.value)">
                                     <select v-model="selectedProfile" class="form-select form-select-lg mb-3 custom-select"
                                         aria-label=".form-select-lg example">
                                         <option class="text-secondary" disabled>select here</option>
-                                        <option v-for="profile in profiles" :key="profile.id" :value="profile.id">{{
+                                        <option v-for="profile in filteredProfiles" :key="profile.id" :value="profile.id">{{
                                             profile.name }}</option>
                                     </select>
                                 </div>
@@ -183,13 +199,12 @@ import { createToast } from 'mosha-vue-toastify';
 import 'mosha-vue-toastify/dist/style.css';
 import { ProfileListForm } from '../../../services/monitor_profile_Services';
 import { GroupListForm } from '../../../services/group_services';
-import { VueSpinner } from 'vue3-spinners';
+import { useDebounceFn } from '../../../composables/useDebounceFn';
 export default {
     name: 'Alerts',
     components: {
         Header,
         AddAlerts,
-        VueSpinner
     },
     data() {
         return {
@@ -205,8 +220,26 @@ export default {
             selectedGroup: 'Select Group Here',
             groupsLIst: [],
             loading: false,
-            error: null, // data not found check
+            alertError: null,
+            profileQuery: '',
+            groupQuery: '',
         }
+    },
+    created() {
+        this.onProfileSearch = useDebounceFn(function (val) { this.profileQuery = val }, 300)
+        this.onGroupSearch = useDebounceFn(function (val) { this.groupQuery = val }, 300)
+    },
+    computed: {
+        filteredProfiles() {
+            const q = this.profileQuery.trim().toLowerCase()
+            if (!q) return this.profiles
+            return this.profiles.filter(p => p.name?.toLowerCase().includes(q))
+        },
+        filteredGroups() {
+            const q = this.groupQuery.trim().toLowerCase()
+            if (!q) return this.groupsLIst
+            return this.groupsLIst.filter(g => g.name?.toLowerCase().includes(q))
+        },
     },
     async mounted() {
         this.handleAllAlerts();
@@ -215,19 +248,13 @@ export default {
     },
     methods: {
         async handleAllAlerts() {
+            this.loading = true
+            this.alertError = null
             try {
-                this.loading = true;
-                this.error = null;
                 let res = await getAlerts()
-                if (res.length === 0) {
-                    this.error = "Alerts not found Add new Alert";
-                    this.alertList = []
-                } else {
-                    this.alertList = res
-                    console.log('alerts', res)
-                }
+                this.alertList = res
             } catch (error) {
-                console.log(error)
+                this.alertError = error.response?.data?.message ?? error.message ?? 'Failed to load alerts'
             } finally {
                 this.loading = false
             }

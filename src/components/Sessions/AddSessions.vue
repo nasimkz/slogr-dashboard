@@ -35,6 +35,8 @@
                   <label for="exampleFormControlInput1" class="form-label ms-1"
                     >Form*</label
                   >
+                  <input type="text" class="form-control mb-2" placeholder="Search agents..."
+                    :value="agentQuery" @input="onAgentSearch($event.target.value)">
                   <select
                     v-model="selectedAgentId"
                     class="form-select form-select-lg mb-3 custom-select"
@@ -45,7 +47,7 @@
                       please select sender sentinel
                     </option>
                     <option
-                      v-for="agent in agents"
+                      v-for="agent in filteredAgents"
                       :key="agent.id"
                       :value="agent.id"
                     >
@@ -67,7 +69,7 @@
                       please select receiver sentinel
                     </option>
                     <option
-                      v-for="client in clients"
+                      v-for="client in filteredClients"
                       :key="client.id"
                       :value="client.id"
                     >
@@ -89,6 +91,8 @@
                       class="form-label ms-1"
                       >Monitoring Profile*</label
                     >
+                    <input type="text" class="form-control mb-2" placeholder="Search profiles..."
+                      :value="profileQuery" @input="onProfileSearch($event.target.value)">
                     <select
                       v-model="selectedProfile"
                       @change="updateSelectedProfileId"
@@ -103,7 +107,7 @@
                         Default
                       </option>
                       <option
-                        v-for="profile in profiles"
+                        v-for="profile in filteredProfiles"
                         :key="profile.id"
                         :value="profile"
                       >
@@ -261,6 +265,7 @@ import { addSessions } from "../../services/sessions_services";
 import { createToast } from "mosha-vue-toastify";
 import "mosha-vue-toastify/dist/style.css";
 import { RouterLink } from 'vue-router';
+import { useDebounceFn } from '../../composables/useDebounceFn';
 
 export default {
   name: "AddSessions",
@@ -288,7 +293,30 @@ export default {
       selectedClientId: "please select receiver sentinel",
       clients: [],
       showAdvancedFields: false,
+      profileQuery: '',
+      agentQuery: '',
     };
+  },
+  created() {
+    this.onProfileSearch = useDebounceFn(function (val) { this.profileQuery = val }, 300)
+    this.onAgentSearch = useDebounceFn(function (val) { this.agentQuery = val }, 300)
+  },
+  computed: {
+    filteredProfiles() {
+      const q = this.profileQuery.trim().toLowerCase()
+      if (!q) return this.profiles
+      return this.profiles.filter(p => p.name?.toLowerCase().includes(q))
+    },
+    filteredAgents() {
+      const q = this.agentQuery.trim().toLowerCase()
+      if (!q) return this.agents
+      return this.agents.filter(a => a.name?.toLowerCase().includes(q))
+    },
+    filteredClients() {
+      const q = this.agentQuery.trim().toLowerCase()
+      if (!q) return this.clients
+      return this.clients.filter(c => c.name?.toLowerCase().includes(q))
+    },
   },
   async mounted() {
     await this.monitor();

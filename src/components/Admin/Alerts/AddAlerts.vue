@@ -29,20 +29,24 @@
                             </div>
                             <div class="mb-4">
                                 <label for="exampleFormControlInput1" class="form-label ms-1">Group*</label>
+                                <input type="text" class="form-control mb-2" placeholder="Search groups..."
+                                    :value="groupQuery" @input="onGroupSearch($event.target.value)">
                                 <select v-model="selectedGroup" class="form-select form-select-lg mb-3"
                                     aria-label=".form-select-lg example">
                                     <option class="text-secondary" disabled>Select here
                                     </option>
-                                    <option v-for="group in groupsLIst" :key="group.id" :value="group.id">{{ group.name }}
+                                    <option v-for="group in filteredGroups" :key="group.id" :value="group.id">{{ group.name }}
                                     </option>
                                 </select>
                             </div>
                             <div class="mb-4">
                                 <label for="exampleFormControlInput1" class="form-label ms-1">Monitoring Profile*</label>
+                                <input type="text" class="form-control mb-2" placeholder="Search profiles..."
+                                    :value="profileQuery" @input="onProfileSearch($event.target.value)">
                                 <select v-model="selectedProfile" class="form-select form-select-lg mb-3 custom-select"
                                     aria-label=".form-select-lg example">
                                     <option class="text-secondary" disabled>select here</option>
-                                    <option v-for="profile in profiles" :key="profile.id" :value="profile.id">{{
+                                    <option v-for="profile in filteredProfiles" :key="profile.id" :value="profile.id">{{
                                         profile.name }}</option>
                                 </select>
                             </div>
@@ -89,6 +93,7 @@ import 'mosha-vue-toastify/dist/style.css';
 import { ProfileListForm } from '../../../services/monitor_profile_Services';
 import { GroupListForm } from '../../../services/group_services';
 import { createAlert } from '../../../services/alerts_services'
+import { useDebounceFn } from '../../../composables/useDebounceFn';
 export default {
     name: 'AddAlerts',
     props:{
@@ -107,8 +112,26 @@ export default {
             selectedProfile: 'Select Profile Here', // Will store the selected profile id
             profiles: [],
             selectedGroup: 'Select Group Here',
-            groupsLIst: []
+            groupsLIst: [],
+            profileQuery: '',
+            groupQuery: '',
         }
+    },
+    created() {
+        this.onProfileSearch = useDebounceFn(function (val) { this.profileQuery = val }, 300)
+        this.onGroupSearch = useDebounceFn(function (val) { this.groupQuery = val }, 300)
+    },
+    computed: {
+        filteredProfiles() {
+            const q = this.profileQuery.trim().toLowerCase()
+            if (!q) return this.profiles
+            return this.profiles.filter(p => p.name?.toLowerCase().includes(q))
+        },
+        filteredGroups() {
+            const q = this.groupQuery.trim().toLowerCase()
+            if (!q) return this.groupsLIst
+            return this.groupsLIst.filter(g => g.name?.toLowerCase().includes(q))
+        },
     },
     async mounted() {
         await this.monitor()

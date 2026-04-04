@@ -1,20 +1,13 @@
-import axios from "axios";
-import store from "../store/store";
-
-let base_url = import.meta.env.VITE_BASE_URL
-
-const getHeaders = () => ({
-    "Authorization": `Bearer ${store.getters.getToken}`
-})
+import apiClient from './apiClient'
 
 export async function getTraceroutes(sessionId = null, page = 1, size = 50) {
-    const params = new URLSearchParams({ page, size });
-    if (sessionId) params.append('session_id', sessionId);
-    const resp = await axios.get(`${base_url}/api/traceroutes?${params}`, { headers: getHeaders() })
+    const params = new URLSearchParams({ page, size })
+    if (sessionId) params.append('session_id', sessionId)
+    const resp = await apiClient.get(`/api/traceroutes?${params}`)
     return resp.data
 }
 
 export async function getTracerouteBySession(sessionId) {
-    const resp = await axios.get(`${base_url}/api/traceroutes/${sessionId}`, { headers: getHeaders() })
+    const resp = await apiClient.get(`/api/traceroutes/${sessionId}`)
     return resp.data
 }

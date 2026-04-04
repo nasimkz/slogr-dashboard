@@ -1,13 +1,6 @@
-import axios from "axios";
-import store from "../store/store";
+import apiClient from './apiClient'
 
-let base_url = import.meta.env.VITE_BASE_URL
-
-const getHeaders = () => ({
-    "Authorization": `Bearer ${store.getters.getToken}`
-})
-
-export async function getSessionsDetails(id){
-    const resp = await axios.get(`${base_url}/api/getsession?sid=` + id, {headers: getHeaders()})
+export async function getSessionsDetails(id) {
+    const resp = await apiClient.get(`/api/getsession?sid=${id}`)
     return resp.data
 }

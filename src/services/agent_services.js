@@ -1,97 +1,76 @@
-import axios from "axios"
-import store from "../store/store";
+import apiClient from './apiClient'
 
-let base_url = import.meta.env.VITE_BASE_URL
-
-axios.interceptors.request.use(
-  (config) => {
-    config.headers[
-      "Authorization"
-    ] = `Bearer ${store.getters.getToken}`;
-    return Promise.resolve(config);
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-export async function agentList(page=1) {
-    const resp = await axios.get(`${base_url}/api/agents?page=${page}`)
+export async function agentList(page = 1) {
+    const resp = await apiClient.get(`/api/agents?page=${page}`)
     return resp.data
 }
 
-export async function agentListForm(size=1000) {
-    const resp = await axios.get(`${base_url}/api/agents?size=${size}`)
+export async function agentListForm(size = 1000) {
+    const resp = await apiClient.get(`/api/agents?size=${size}`)
     return resp.data
 }
 
 export async function createAgent(payload) {
-    const resp = await axios.post(`${base_url}/api/add-agent`, payload)
+    const resp = await apiClient.post('/api/add-agent', payload)
     return resp.data
 }
 
 export async function agentUpdate(payload) {
-    const resp = await axios.post(`${base_url}/api/edit-agent`, payload)
+    const resp = await apiClient.post('/api/edit-agent', payload)
     return resp.data
 }
 
 export async function fetchClusters(id) {
-    const resp = await axios.get(`${base_url}/api/cluster?group=${id}`)
+    const resp = await apiClient.get(`/api/cluster?group=${id}`)
     return resp.data
 }
 
 export async function fetchSessions(group_id) {
-    const resp = await axios.get(`${base_url}/api/links?group=${group_id}`)
+    const resp = await apiClient.get(`/api/links?group=${group_id}`)
     return resp.data
 }
 
 export async function fetchAgentlinks(id) {
-    const resp = await axios.get(`${base_url}/api/agentlinks?aid=${id}`)
+    const resp = await apiClient.get(`/api/agentlinks?aid=${id}`)
     return resp.data
 }
 
 export async function fetchGroups() {
-    const resp = await axios.get(`${base_url}/api/groups`)
+    const resp = await apiClient.get('/api/groups')
     return resp.data
 }
-export async function fetchGroupData() {
-    let resp = await axios.get(`${base_url}/api/groups`)
-    const linkData = {};
-    for (let i = 0; i < resp.data.length; i++) {
-        const group = resp.data[i];
-        try {
-          const linksResp = await axios.get(
-            `${base_url}/api/links?group=${group.id}&profiles=true`
-          );
-          linkData[group.id] = linksResp.data;
-        } catch (linksError) {
-          console.error('Error fetching links:', linksError);
-          throw linksError;
-        }
-      }
 
+export async function fetchGroupData() {
+    const resp = await apiClient.get('/api/groups')
+    const groups = resp.data
+    const linkResults = await Promise.all(
+        groups.map(group =>
+            apiClient.get(`/api/links?group=${group.id}&profiles=true`)
+        )
+    )
+    const linkData = {}
+    groups.forEach((group, i) => {
+        linkData[group.id] = linkResults[i].data
+    })
     return linkData
 }
 
 export async function fetchClustersData() {
-    let resp = await axios.get(`${base_url}/api/groups`)
-    const clusterdata = {};
-    for (let i = 0; i < resp.data.length; i++) {
-        const group = resp.data[i];
-        try {
-          const linksResp = await axios.get(
-            `${base_url}/api/cluster?group=${group.id}`
-          );
-          clusterdata[group.id] = linksResp.data;
-        } catch (linksError) {
-          console.error('Error fetching links:', linksError);
-          throw linksError;
-        }
-      }
-
+    const resp = await apiClient.get('/api/groups')
+    const groups = resp.data
+    const clusterResults = await Promise.all(
+        groups.map(group =>
+            apiClient.get(`/api/cluster?group=${group.id}`)
+        )
+    )
+    const clusterdata = {}
+    groups.forEach((group, i) => {
+        clusterdata[group.id] = clusterResults[i].data
+    })
     return clusterdata
 }
-export async function agentRefSessions(id){
-    const resp = await axios.get(`${base_url}/api/get-ref-sessions?aid=` + id)
+
+export async function agentRefSessions(id) {
+    const resp = await apiClient.get(`/api/get-ref-sessions?aid=${id}`)
     return resp.data
 }

@@ -44,9 +44,18 @@
                                 <div class="card" style="height: 100vh;">
                                     <div class="card-body">
                                         <perfect-scrollbar style="height: 820px;">
-                                            <div class="text-center m-5" v-if="loading">
-                                                <VueSpinner size="80" color="#8cb63d" />
-                                            </div>
+                                            <LoadingState v-if="loading" />
+                                            <ErrorState
+                                                v-else-if="groupError"
+                                                :message="groupError"
+                                                :on-retry="() => handleGroupsSessionsData(receivedGroupId)"
+                                            />
+                                            <EmptyState
+                                                v-else-if="!groupListSessionsData.length"
+                                                icon="fa-solid fa-layer-group"
+                                                title="No sessions"
+                                                message="Select a group or add sessions to see them here."
+                                            />
                                             <div class="table-responsive" v-else>
                                                 <table class="table table-striped table-hover text-center">
                                                     <thead>
@@ -95,7 +104,6 @@ import Header from '../common/Header.vue';
 import { getGroups, GroupsSessionsData } from '../../services/group_services';
 import GroupSidebar from '../Groups/GroupSidebar.vue';
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar';
-import { VueSpinner } from 'vue3-spinners';
 import AddGroup from './AddGroup.vue';
 
 export default {
@@ -104,9 +112,7 @@ export default {
         Header,
         GroupSidebar,
         PerfectScrollbar,
-        VueSpinner,
         AddGroup,
-
     },
     data() {
         return {
@@ -115,6 +121,7 @@ export default {
             groupListSessionsData: [],
             loading: false,
             sessionsData: [],
+            groupError: null,
         }
     },
 
@@ -135,14 +142,15 @@ export default {
            await this.handleGroupsSessionsData(id)
         },
         async handleGroupsSessionsData(id) {
+            this.loading = true
+            this.groupError = null
             try {
-                this.loading = true
                 let res = await GroupsSessionsData(id)
                 this.groupListSessionsData = res.group.sessions
             } catch (error) {
-                console.log(error)
+                this.groupError = error.response?.data?.message ?? error.message ?? 'Failed to load sessions'
             } finally {
-                this.loading = false;
+                this.loading = false
             }
         }
     }

@@ -28,9 +28,18 @@
             <div class="container-fluid tableDiv">
                 <div class="card mx-md-2 mt-4 mb-5">
                     <div class="card-body">
-                        <div class="text-center m-5" v-if="loading">
-                            <VueSpinner size="80" color="#8cb63d" />
-                        </div>
+                        <LoadingState v-if="loading" />
+                        <ErrorState
+                            v-else-if="profileError"
+                            :message="profileError"
+                            :on-retry="handleMonitorList"
+                        />
+                        <EmptyState
+                            v-else-if="!monitorData.length"
+                            icon="fa-solid fa-sliders"
+                            title="No monitoring profiles"
+                            message="Create a profile to define SLA thresholds for your sessions."
+                        />
                         <div class="table-responsive" v-else>
                             <table class="table table-striped table-hover text-center">
                                 <thead>
@@ -352,6 +361,7 @@ export default {
     data() {
         return {
             monitorData: [],
+            profileError: null,
             loading: false,
             pages: {
                 currentPage: 1,
@@ -391,12 +401,13 @@ export default {
     },
     methods: {
         async handleMonitorList() {
+            this.loading = true
+            this.profileError = null
             try {
-                this.loading = true
                 let res = await ProfileList()
                 this.monitorData = res.profiles
             } catch (error) {
-                console.log(error)
+                this.profileError = error.response?.data?.message ?? error.message ?? 'Failed to load profiles'
             } finally {
                 this.loading = false
             }
