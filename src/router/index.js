@@ -31,12 +31,6 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
-      path: '/home2',
-      name: 'Home',
-      component: Home,
-      meta: { requiresAuth: true },
-    },
-    {
       path: '/sentinel',
       name: 'Sentinel',
       component: Sentinel,

@@ -78,8 +78,11 @@
                                         <td>
                                             <p class="tableP">{{ calculateTimeDifference(data.updated_at) }} minutes ago</p>
                                         </td>
-                                        <td class="fs-5"><a href="#" class="text-decoration-none text-dark tableP">
-                                                <i class="fa-solid fa-circle-play"></i></a></td>
+                                        <td class="fs-5">
+                                            <RouterLink :to="'/sentinelReports/' + data.id" class="text-decoration-none text-dark tableP">
+                                                <i class="fa-solid fa-circle-play"></i>
+                                            </RouterLink>
+                                        </td>
                                         <td class="fs-5 dropstart">
                                             <a href="#" class="text-decoration-none text-dark tableP"
                                                 data-bs-toggle="dropdown" aria-expanded="false">
@@ -353,7 +356,7 @@ export default {
                 this.pages.currentPage = this.pages.previousPage + 1
                 this.pages.nextPage = res?.data?.next || 0
             } catch (error) {
-                console.log(error)
+                // sessions fetch failed
             } finally {
                 this.loading = false
             }
@@ -376,21 +379,18 @@ export default {
                     position: 'top-right',
                     transition: 'zoom',
                 });
-                console.log(error)
             }
         },
         calculateTimeDifference(updatedAt) {
-            // Convert 'updatedAt' to a Date object
+            if (!updatedAt || !this.current_time) return '—';
+
             const updatedDate = new Date(updatedAt);
             const currentDate = new Date(this.current_time);
 
-            // Calculate the time difference in milliseconds
+            if (isNaN(updatedDate.getTime()) || isNaN(currentDate.getTime())) return '—';
+
             const timeDifference = currentDate - updatedDate;
-
-            // Convert the time difference to minutes
-            const minutesDifference = Math.floor(timeDifference / (1000 * 60));
-
-            return minutesDifference;
+            return Math.floor(timeDifference / (1000 * 60));
         },
         handleEditModel(id, s_name, c_name, p_name, n_packets, p_interval, w_time, dscp, count, schedule, p_size) {
             this.form.id = id
@@ -443,19 +443,15 @@ export default {
                         position: 'top-right',
                         transition: 'zoom',
                     });
-                    console.log('401', error.response.data.Unauthorized)
-                } else {
-                    console.log('main-error-1', error)
                 }
             }
-            console.log('edit', payload)
         },
         async monitor(size = 1000) {
             try {
                 let res = await ProfileListForm(size)
                 this.profiles = res.profiles;
             } catch (error) {
-                console.log(error)
+                // profiles fetch failed
             }
         },
         async server(size = 1000) {
@@ -464,7 +460,7 @@ export default {
                 this.agents = res.data.agents
                 this.clients = res.data.agents
             } catch (error) {
-                console.log(error)
+                // agents fetch failed
             }
         },
         toggleAdvancedFields() {

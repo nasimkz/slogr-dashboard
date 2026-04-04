@@ -142,6 +142,7 @@ import { RouterLink } from "vue-router";
 import { VueSpinner } from "vue3-spinners";
 import { PerfectScrollbar } from "vue3-perfect-scrollbar";
 import mapboxgl from "mapbox-gl";
+import DOMPurify from "dompurify";
 import {
   fetchClusters,
   fetchAgentlinks,
@@ -283,7 +284,7 @@ export default {
                     popup
                       .setLngLat(features[0].geometry.coordinates)
                       .setHTML(
-                        `<h5>Cluster nodes: ${clusterPointCount}</h5> ${nodesCount}`
+                        DOMPurify.sanitize(`<h5>Cluster nodes: ${clusterPointCount}</h5> ${nodesCount}`)
                       )
                       .setLngLat(features[0].geometry.coordinates)
                       .addTo(map);
@@ -412,7 +413,6 @@ export default {
     },
     async handleToggleGroup(groupId, switchValue) {
       let map = this.map;
-      console.log(this.groupMarkers, "groupMarkers");
       let myGroupMarkers = this.groupMarkers[groupId];
       if (this.mapLayers.length == 0) {
         let clusterLayers = ["clusters", "cluster-count"];
@@ -463,14 +463,12 @@ export default {
         let respData;
         if (groupId === "") {
           respData = await fetchClusters("");
-          console.log("clusters", respData);
         } else {
           respData = this.clusterdata[groupId];
-          console.log("clusterssss", respData);
         }
         return respData;
       } catch (error) {
-        console.error("Error handling clusters:", error);
+        // cluster fetch failed
       }
     },
     async handleSessions(groupId) {
@@ -487,7 +485,7 @@ export default {
         // const response = await fetchGroups();
         this.groupdata = response;
       } catch (error) {
-        console.error("Error fetching groups:", error);
+        // group data fetch failed
       }
     },
     async handleClusterData() {
@@ -496,9 +494,8 @@ export default {
         const response = await fetchClustersData();
         // const response = await fetchGroups();
         this.clusterdata = response;
-        console.log("Cluster data", response);
       } catch (error) {
-        console.error("Error fetching groups:", error);
+        // cluster data fetch failed
       } finally {
         this.loading = false; // Reset loading after API request completion
   }
@@ -510,7 +507,7 @@ export default {
         const response = await fetchGroups();
         this.groups = response;
       } catch (error) {
-        console.error("Error fetching groups:", error);
+        // groups fetch failed
       } finally {
           this.loading = false;
       }
@@ -526,7 +523,7 @@ export default {
         this.clusterdata = clusterResponse;
 
       } catch (error) {
-        console.error("Error fetching data:", error);
+        // data fetch failed
       } finally {
         this.loading = false;
       }
@@ -537,7 +534,7 @@ export default {
         const resp = await ProfileList();
         this.profiles = resp.profiles;
       } catch (errors) {
-        console.log(errors);
+        // profile fetch failed
       }
       // finally {
       //   this.loading = false;
@@ -715,7 +712,7 @@ export default {
 
         let marker = new mapboxgl.Marker(el).setLngLat(coordinates).addTo(map);
 
-        let popupHTML = `<h5>${org}</h5><p>server: ${server}</p><p>client: ${client}</p>`;
+        let popupHTML = DOMPurify.sanitize(`<h5>${org}</h5><p>server: ${server}</p><p>client: ${client}</p>`);
         let markerPopup = new mapboxgl.Popup();
         marker.getElement().addEventListener("mouseenter", function () {
           markerPopup.setLngLat(coordinates).setHTML(popupHTML).addTo(map);
@@ -766,8 +763,6 @@ export default {
         type: "FeatureCollection",
         features: lineFeatures,
       };
-
-      console.log("lineFeature", lineFeatures);
 
       this.GroupGeoJson[uniqueId] = this.initialGroupGeoJsonData;
       this.map.addSource(uniqueId, {
@@ -937,7 +932,7 @@ export default {
 }
 
 .marker {
-  background-image: url("https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker.png");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='30' viewBox='0 0 20 30'%3E%3Cellipse cx='10' cy='28' rx='4' ry='2' fill='%23000' opacity='0.2'/%3E%3Cpath d='M10 0C5.6 0 2 3.6 2 8c0 6 8 22 8 22s8-16 8-22c0-4.4-3.6-8-8-8z' fill='%238cb63d'/%3E%3Ccircle cx='10' cy='8' r='4' fill='%23fff' opacity='0.6'/%3E%3C/svg%3E");
   background-size: cover;
   width: 20px;
   height: 30px;

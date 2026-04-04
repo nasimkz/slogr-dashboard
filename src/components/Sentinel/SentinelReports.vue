@@ -153,6 +153,9 @@
                 </div>
             </div>
             <div class="container-fluid tableDiv">
+                <div v-if="chartError" class="alert alert-warning mx-md-2">
+                    Charts could not be loaded.
+                </div>
                 <div class="row g-2 mx-md-2 mb-5">
                     <div class="col-md-4">
                         <div class="card">
@@ -200,6 +203,7 @@ import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 import 'vue3-perfect-scrollbar/dist/vue3-perfect-scrollbar.css'
 import { VueSpinner } from 'vue3-spinners';
 import moment from 'moment'
+import Highcharts from 'highcharts'
 import { createToast } from 'mosha-vue-toastify';
 import 'mosha-vue-toastify/dist/style.css';
 
@@ -229,13 +233,13 @@ export default {
             Up: [],
             DownLink:[],
             Rtt:[],
-            runningTest: false
+            runningTest: false,
+            chartError: false
         }
     },
     mounted() {
         this.handleSessionResults()
         this.SessionsDetails()
-        console.log('id', this.$route.params.id)
     },
     methods: {
 
@@ -248,9 +252,8 @@ export default {
                 this.pages.previousPage = res?.data?.prev || 0
                 this.pages.currentPage = this.pages.previousPage + 1
                 this.pages.nextPage = res?.data?.next || 0
-                console.log('results', res.data)
             } catch (error) {
-                console.log(error)
+                // session results fetch failed
             } finally {
                 this.loading2 = false;
             }
@@ -285,9 +288,13 @@ export default {
                 this.Up = res.data.uplink
                 this.DownLink = res.data.downlink
                 this.Rtt = res.data.rtt
-                await this.loadCharts();
+                try {
+                    await this.loadCharts();
+                } catch (chartErr) {
+                    this.chartError = true;
+                }
             } catch (error) {
-                console.log(error)
+                // session details load failed
             } finally {
                 this.loading = false;
             }

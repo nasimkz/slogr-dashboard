@@ -13,7 +13,7 @@ const { Store } = Vuex;
 // Create a vuexPersist instance
 const vuexPersist = new createPersist({
     key: 'slogr', // unique key for your application
-    storage: localStorage, // or sessionStorage or localforage
+    storage: window.sessionStorage,
     reducer: state => ({
         // Specify which state properties you want to persist
         token: state.token,
@@ -65,8 +65,7 @@ const store = new Store({
                         });
                     }
                 }
-                // Handle login error
-                console.error('Login failed', error);
+                // login failed
             }
         },
         async signup({ commit }, credentials) {
@@ -98,14 +97,13 @@ const store = new Store({
                         transition: 'zoom',
                     });
                 }
-                console.error('Signup failed', error);
+                // signup failed
             }
         },
         async socialLogin({ commit }, credentials){
             try {
                 const resp = await authServices.socialLogin(credentials)
                 if (resp.status === 200) {
-                    console.log('success', resp.data.success)
                     commit('setToken', resp.data.success.token);
                     commit('setUserData', resp.data.success);
                     router.push('/');
@@ -121,7 +119,6 @@ const store = new Store({
                         });
                     }
                 }
-                console.log(error)
             }
         },
         logout({ commit }) {

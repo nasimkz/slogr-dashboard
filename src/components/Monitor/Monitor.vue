@@ -131,13 +131,13 @@
                             </div>
                             <div>
                                 <div class="pagination">
-                                    <button class="prevBtn"><i class="fa-solid fa-angle-left"></i> Prev</button>
+                                    <button class="prevBtn" :disabled="pages.previousPage === 0" @click="handleMonitorList(pages.previousPage)"><i class="fa-solid fa-angle-left"></i> Prev</button>
                                     <div class="pageNumber">-</div>
                                     <div class="pageNumber">-</div>
-                                    <div class="pageNumber pageBtn">1</div>
+                                    <div class="pageNumber pageBtn">{{ pages.currentPage }}</div>
                                     <div class="pageNumber">-</div>
                                     <div class="pageNumber">-</div>
-                                    <button class="nextBtn">Next <i class="fa-solid fa-angle-right"></i></button>
+                                    <button class="nextBtn" :disabled="pages.nextPage === 0" @click="handleMonitorList(pages.nextPage)">Next <i class="fa-solid fa-angle-right"></i></button>
                                 </div>
                             </div>
                         </div>
@@ -348,15 +348,16 @@ export default {
     created: function () {
         this.moment = moment;
     },
-    computed:{
-        getToken(){
-            return 
-        }
-    },
+    computed: {},
     data() {
         return {
             monitorData: [],
             loading: false,
+            pages: {
+                currentPage: 1,
+                previousPage: 0,
+                nextPage: 0
+            },
             form: {
                 id: null,
                 name: '',

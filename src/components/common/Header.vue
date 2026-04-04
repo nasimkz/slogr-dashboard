@@ -80,11 +80,11 @@
                     <div class="btn-group">
                         <button class="btnn text-decoration-none text-secondary" data-bs-toggle="dropdown"
                             aria-expanded="false">
-                            {{ userData.user.name.substring(0, 2) }}</button>
+                            {{ userData?.user?.name?.substring(0, 2) ?? '?' }}</button>
                         <ul class="dropdown-menu dropdown-menu-end dropdown-menu-lg-starts">
                             <li>
                                 <h6 class="dropdown-header"><i class="fa-regular fa-user"></i>
-                                    {{ userData.user.name }}</h6>
+                                    {{ userData?.user?.name ?? '' }}</h6>
                             </li>
                             <li>
                                 <button class="dropdown-item" @click="logoutUser"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
@@ -128,9 +128,12 @@ export default {
     },
     methods: {
         logoutUser() {
-            // Call the logout action from the Vuex store
             this.$store.dispatch('logout');
-            this.logout()
+            try {
+                this.logout()
+            } catch (e) {
+                // Auth0 logout is best-effort; store logout already cleared credentials
+            }
         },
     }
 }

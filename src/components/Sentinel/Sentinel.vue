@@ -237,7 +237,7 @@
                         <hr>
                         <br>
                         <div class="d-flex justify-content-center">
-                            <a href="https://storage.googleapis.com/cdn-web0bucket/installer-slogr.exe"><button
+                            <a :href="agentDownloadUrl"><button
                                     type="button" class="modelSaveBtn ms-2"
                                     style="background-color: rgba(85, 253, 253, 0.39); color: black; border: none; font-weight: 500;">Download
                                     Windows Agent</button></a>
@@ -252,7 +252,7 @@
                         <div class="d-flex justify-content-center">
                             
                             <div class="copy-text">
-                                <input type="text" class="text" ref="textInput" value="curl -sL https://storage.googleapis.com/cdn-web0bucket/install.sh | sudo bash -"  disabled/>
+                                <input type="text" class="text" ref="textInput" :value="agentInstallCmd" disabled/>
                                 <button @click="copyText"><i class="fa fa-clone"></i></button>
                             </div>
                         </div>
@@ -327,7 +327,9 @@ export default {
             refSessions: [],
             error: null, // data not found check
             loading: false,
-            loading2: false
+            loading2: false,
+            agentDownloadUrl: import.meta.env.VITE_AGENT_DOWNLOAD_URL || '',
+            agentInstallCmd: import.meta.env.VITE_AGENT_INSTALL_CMD || ''
         }
     },
     async mounted() {
@@ -378,7 +380,7 @@ export default {
                     if (newError) {
                         console.log('res-error', newError)
                         createToast(newError, {
-                            type: 'success',
+                            type: 'danger',
                             position: 'top-right',
                             transition: 'zoom',
                         });

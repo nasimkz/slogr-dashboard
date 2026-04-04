@@ -18,7 +18,7 @@
                         <form @submit.prevent="loginUser">
                             <div class="form-group pb-3">
                                 <label for="exampleInputEmail1">Email Address</label>
-                                <input type="email" placeholder="Benjaminrobert77@email.com"
+                                <input type="email" placeholder="user@example.com"
                                     class="form-control form-control-lg" name="email" v-model="this.email"
                                     aria-describedby="emailHelp" autocomplete="new-email" required>
                             </div>
