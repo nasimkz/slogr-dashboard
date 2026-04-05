@@ -19,7 +19,7 @@
                             <div class="form-group pb-3">
                                 <label for="loginEmail">Email Address</label>
                                 <input type="email" id="loginEmail" placeholder="user@example.com"
-                                    class="form-control form-control-lg" name="email" v-model="this.email"
+                                    class="form-control form-control-lg" name="email" v-model="email"
                                     autocomplete="email" required>
                             </div>
                             <div class="form-group">
@@ -30,6 +30,7 @@
                             <div class="">
                                 <button type="submit" class="signInBtn w-100 my-5">Login</button>
                             </div>
+                            <p v-if="loginStatus" class="text-center mt-2" :class="loginStatus.includes('failed') ? 'text-danger' : 'text-success'">{{ loginStatus }}</p>
                         </form>
                         <div class="sideline mb-2">Or Sign In With</div>
                         <div>
@@ -58,6 +59,7 @@ export default {
         return {
             email: '',
             password: '',
+            loginStatus: '',
         }
     },
     mounted() {
@@ -67,14 +69,16 @@ export default {
         async loginUser(e) {
             e.preventDefault()
             const payload = {
-                email: this.email,
-                password: this.password
+                email: this.email || document.getElementById('loginEmail').value,
+                password: this.password || document.getElementById('loginPassword').value
             }
-            // Call the login action
+            this.loginStatus = 'Logging in...'
             try {
                 await this.$store.dispatch('login', payload);
+                this.loginStatus = 'Login successful — redirecting...'
             } catch (error) {
-                console.log(error)
+                this.loginStatus = 'Login failed: ' + (error.response?.data?.message || error.message || 'Unknown error')
+                console.error('Login error:', error)
             }
         }
     }
