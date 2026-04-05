@@ -14,12 +14,14 @@ import { VueSpinner } from 'vue3-spinners';
 export default {
     name: 'Linkedin',
     setup() {
-        const { loginWithPopup, user, } = useAuth0()
-        return {
-            login: () => {
-                loginWithPopup()
-            },
-            user,
+        try {
+            const { loginWithPopup, user } = useAuth0()
+            return {
+                login: () => { loginWithPopup() },
+                user,
+            }
+        } catch {
+            return { login: () => {}, user: null }
         }
     },
     watch: {

@@ -17,15 +17,18 @@ import ErrorState from './components/shared/ErrorState.vue'
 const app = createApp(App)
 
 app.use(router)
-app.use(
+const auth0Domain = import.meta.env.VITE_AUTH0_DOMAIN
+if (auth0Domain && !auth0Domain.startsWith('placeholder')) {
+  app.use(
     createAuth0({
-      domain: import.meta.env.VITE_AUTH0_DOMAIN,
+      domain: auth0Domain,
       clientId: import.meta.env.VITE_AUTH0_CLIENT_ID,
       authorizationParams: {
         redirect_uri: window.location.origin
       }
     })
-  );
+  )
+}
 app.use(store)
 setupInterceptors()
 app.component('LoadingState', LoadingState)
