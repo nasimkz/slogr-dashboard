@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-let base_url = import.meta.env.VITE_BASE_URL
+let base_url = import.meta.env.VITE_BASE_URL || ''
 
 export default {
   async login(credentials) {
