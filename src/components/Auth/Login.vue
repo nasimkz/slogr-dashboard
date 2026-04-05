@@ -17,15 +17,15 @@
                     <div class="form-style">
                         <form @submit.prevent="loginUser">
                             <div class="form-group pb-3">
-                                <label for="exampleInputEmail1">Email Address</label>
-                                <input type="email" placeholder="user@example.com"
+                                <label for="loginEmail">Email Address</label>
+                                <input type="email" id="loginEmail" placeholder="user@example.com"
                                     class="form-control form-control-lg" name="email" v-model="this.email"
-                                    aria-describedby="emailHelp" autocomplete="new-email" required>
+                                    autocomplete="email" required>
                             </div>
                             <div class="form-group">
-                                <label for="exampleInputPassword1">Password</label>
-                                <input type="password" placeholder="Password" class="form-control form-control-lg"
-                                    name="password" autocomplete="new-password" v-model="this.password" required>
+                                <label for="loginPassword">Password</label>
+                                <input type="password" id="loginPassword" placeholder="Password" class="form-control form-control-lg"
+                                    name="password" autocomplete="current-password" v-model="this.password" required>
                             </div>
                             <div class="">
                                 <button type="submit" class="signInBtn w-100 my-5">Login</button>
