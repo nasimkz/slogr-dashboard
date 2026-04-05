@@ -192,7 +192,12 @@ export default {
   async mounted() {
     var clusters = await this.handleClusters("");
     var sessions = await this.handleSessions("");
-    mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
+    const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
+    if (!mapboxToken) {
+      document.getElementById('map').innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;color:#666;"><p>Map unavailable — VITE_MAPBOX_TOKEN not configured.</p></div>';
+      return;
+    }
+    mapboxgl.accessToken = mapboxToken;
     this.map = new mapboxgl.Map({
       container: "map",
       style: "mapbox://styles/mapbox/light-v11",
