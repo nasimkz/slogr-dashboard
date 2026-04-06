@@ -20,12 +20,17 @@
                             <div class="d-flex align-items-center">
                                 <h6 class="mx-1 mt-2 text-muted">Home </h6>
                                 <h6 class="me-4 mt-2"> - Sentinel</h6>
-                                <button class="addBtn" data-bs-toggle="modal" data-bs-target="#staticBackdrop2"> <i
+                                <button class="addBtn" :disabled="isReadOnly" :title="readOnlyTitle" :class="{ 'opacity-50': isReadOnly }" data-bs-toggle="modal" data-bs-target="#staticBackdrop2"> <i
                                         class="fa-solid fa-plus fa-lg"></i> Add New Sentinel</button>
                                 <div class="mx-3"><i class="fa-solid fa-ellipsis fa-2xl"></i></div>
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+            <div v-if="isReadOnly" class="container-fluid px-4 mt-2">
+                <div class="alert mb-0" style="background: #1a0a0a; border: 1px solid #dc2626; color: #fca5a5;">
+                    <i class="fa-solid fa-lock me-2"></i>Read-only mode — license expired. <a href="mailto:license@slogr.io" style="color: #fca5a5;">Contact license@slogr.io to renew.</a>
                 </div>
             </div>
             <div class="container-fluid tableDiv">
@@ -325,6 +330,10 @@ export default {
     components: {
         Header,
         VueSpinner
+    },
+    computed: {
+        isReadOnly() { return this.$store.getters.isReadOnly },
+        readOnlyTitle() { return this.isReadOnly ? 'Your license has expired. Renew at license@slogr.io to enable this action.' : null },
     },
     data() {
         return {
