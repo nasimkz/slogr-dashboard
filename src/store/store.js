@@ -16,9 +16,10 @@ const vuexPersist = new createPersist({
     key: 'slogr', // unique key for your application
     storage: window.sessionStorage,
     reducer: state => ({
-        // Specify which state properties you want to persist
         token: state.token,
-        userData:state.userData
+        userData: state.userData,
+        userPermissions: state.userPermissions,
+        userRole: state.userRole,
     }),
 });
 
@@ -32,10 +33,18 @@ const store = new Store({
         licenseDaysRemaining: null,
         licenseLoginsRemaining: null,
         installationId: null,
+        userPermissions: [],
+        userRole: null,
     },
     getters: {
         getToken: state => state.token,
         getUserData: state => state.userData,
+        userPermissions: state => state.userPermissions,
+        userRole: state => state.userRole,
+        hasPermission: state => (perm) => state.userPermissions.includes(perm),
+        isAdmin: state => ['superadmin', 'admin'].includes(state.userRole),
+        isOperator: state => state.userRole === 'operator',
+        isViewer: state => state.userRole === 'viewer',
         licenseState: state => state.licenseState,
         isReadOnly: state => state.licenseIsReadOnly,
         licenseDaysRemaining: state => state.licenseDaysRemaining,
@@ -64,6 +73,12 @@ const store = new Store({
         SET_INSTALLATION_ID(state, id) {
             state.installationId = id
         },
+        SET_PERMISSIONS(state, permissions) {
+            state.userPermissions = permissions || []
+        },
+        SET_USER_ROLE(state, role) {
+            state.userRole = role || 'viewer'
+        },
     },
     actions: {
         async login({ commit }, credentials) {
@@ -74,6 +89,8 @@ const store = new Store({
                     // Update Vuex store with user data
                     commit('setToken', response.data.success.token);
                     commit('setUserData', response.data.success);
+                    commit('SET_PERMISSIONS', response.data.success.permissions || []);
+                    commit('SET_USER_ROLE', response.data.success.role || 'viewer');
                     router.push('/');
                 }
             } catch (error) {
@@ -146,6 +163,17 @@ const store = new Store({
         logout({ commit }) {
             router.push({ name: 'Login' })
             commit('clearUserData');
+            commit('SET_PERMISSIONS', []);
+            commit('SET_USER_ROLE', null);
+        },
+        async refreshPermissions({ commit }) {
+            try {
+                const res = await apiClient.get('/api/me')
+                commit('SET_PERMISSIONS', res.data.permissions || [])
+                commit('SET_USER_ROLE', res.data.role || 'viewer')
+            } catch (e) {
+                // Permission refresh failed — non-blocking
+            }
         },
         async fetchLicenseStatus({ commit }) {
             try {

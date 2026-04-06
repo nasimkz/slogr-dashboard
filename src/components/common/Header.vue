@@ -62,6 +62,12 @@
                                 <span class="mx-lg-1">Traceroute</span>
                             </RouterLink>
                         </li>
+                        <li v-if="$store.getters.isAdmin" class="nav-item mx-xl-1">
+                            <RouterLink class="nav-link mx-lg-1 mx-xl-1" to="/admin/users">
+                                <i class="fa-solid fa-users"></i>
+                                <span class="mx-lg-1">Users</span>
+                            </RouterLink>
+                        </li>
                     </ul>
                     <!-- <div class="search-container">
                         <button class="search-button">All</button>
@@ -80,7 +86,9 @@
                     <div class="btn-group">
                         <button class="btnn text-decoration-none text-secondary" data-bs-toggle="dropdown"
                             aria-expanded="false">
-                            {{ userData?.user?.name?.substring(0, 2) ?? '?' }}</button>
+                            {{ userData?.user?.name?.substring(0, 2) ?? '?' }}
+                            <span v-if="$store.getters.userRole" :class="['header-role-badge', 'role-' + ($store.getters.userRole || 'viewer')]">{{ $store.getters.userRole }}</span>
+                        </button>
                         <ul class="dropdown-menu dropdown-menu-end dropdown-menu-lg-starts">
                             <li>
                                 <h6 class="dropdown-header"><i class="fa-regular fa-user"></i>
@@ -143,6 +151,11 @@ export default {
 a {
     color: var(--dark_color);
 }
+.header-role-badge { font-size: 0.65rem; padding: 1px 6px; border-radius: 999px; font-weight: 600; text-transform: capitalize; margin-left: 4px; vertical-align: middle; }
+.role-admin { background: #7c3aed33; color: #a78bfa; }
+.role-operator { background: #1d4ed833; color: #93c5fd; }
+.role-viewer { background: #37415133; color: #9ca3af; }
+.role-superadmin { background: #b4530033; color: #fbbf24; }
 
 .nav-link {
     font-size: 20px;

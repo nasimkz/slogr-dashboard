@@ -76,6 +76,17 @@ const router = createRouter({
       component: SignUp
     },
     {
+      path: '/admin/users',
+      name: 'UserManagement',
+      component: () => import('../components/Admin/UserManagement.vue'),
+      meta: { requiresAuth: true, permission: 'view_users' }
+    },
+    {
+      path: '/unauthorized',
+      name: 'Unauthorized',
+      component: () => import('../views/Unauthorized.vue'),
+    },
+    {
       path: '/sentinelReports/:id',
       name: 'SentinelReports',
       component: SentinelReports,
@@ -137,21 +148,24 @@ const router = createRouter({
 
 // Add navigation guard to check authentication
 router.beforeEach((to, from, next) => {
-  // Always allow activate and login pages
-  if (to.path === '/activate' || to.path === '/login' || to.path === '/signUp') {
+  // Always allow these pages
+  if (['/activate', '/login', '/signUp', '/unauthorized'].includes(to.path)) {
     return next()
   }
 
-  // Check if the route requires authentication
-  if (to.meta.requiresAuth) {
-    if (store.getters.getToken) {
-      next();
-    } else {
-      next('/login');
-    }
-  } else {
-    next();
+  // Auth check
+  if (to.meta.requiresAuth && !store.getters.getToken) {
+    return next('/login')
   }
+
+  // Permission check
+  if (to.meta.permission && store.getters.getToken) {
+    if (!store.getters.hasPermission(to.meta.permission)) {
+      return next('/unauthorized')
+    }
+  }
+
+  next()
 });
 
 export default router
