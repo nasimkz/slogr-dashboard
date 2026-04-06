@@ -3,7 +3,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
-ARG VITE_BASE_URL=""
+ARG VITE_BASE_URL
 ARG VITE_AUTH0_DOMAIN="placeholder.us.auth0.com"
 ARG VITE_AUTH0_CLIENT_ID="placeholder"
 ARG VITE_AGENT_DOWNLOAD_URL="https://github.com/slogr-io/slogr-agent-kotlin/releases/latest"

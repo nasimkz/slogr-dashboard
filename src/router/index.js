@@ -66,6 +66,11 @@ const router = createRouter({
       component: Login
     },
     {
+      path: '/activate',
+      name: 'Activate',
+      component: () => import('../views/Activate.vue'),
+    },
+    {
       path: '/signUp',
       name: 'SignUp',
       component: SignUp
@@ -132,18 +137,19 @@ const router = createRouter({
 
 // Add navigation guard to check authentication
 router.beforeEach((to, from, next) => {
+  // Always allow activate and login pages
+  if (to.path === '/activate' || to.path === '/login' || to.path === '/signUp') {
+    return next()
+  }
+
   // Check if the route requires authentication
   if (to.meta.requiresAuth) {
-    // Check if the user is logged in
     if (store.getters.getToken) {
-      // User is logged in, allow access to the route
       next();
     } else {
-      // User is not logged in, redirect to the login page
       next('/login');
     }
   } else {
-    // Route does not require authentication, allow access
     next();
   }
 });

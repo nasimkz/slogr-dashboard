@@ -4,6 +4,7 @@ import createPersist from 'vuex-persist';
 
 // Your authentication service
 import authServices from './authServices';
+import apiClient from '../services/apiClient';
 import { createToast } from 'mosha-vue-toastify';
 import 'mosha-vue-toastify/dist/style.css';
 import router from '@/router/index'
@@ -25,11 +26,23 @@ const vuexPersist = new createPersist({
 const store = new Store({
     state: {
         token: null,
-        userData: {}
+        userData: {},
+        licenseState: null,
+        licenseIsReadOnly: false,
+        licenseDaysRemaining: null,
+        licenseLoginsRemaining: null,
+        installationId: null,
     },
     getters: {
         getToken: state => state.token,
-        getUserData: state => state.userData
+        getUserData: state => state.userData,
+        licenseState: state => state.licenseState,
+        isReadOnly: state => state.licenseIsReadOnly,
+        licenseDaysRemaining: state => state.licenseDaysRemaining,
+        isLicenseActive: state => state.licenseState === 'ACTIVE',
+        isUnlicensed: state => !state.licenseState || state.licenseState === 'UNLICENSED',
+        isInGracePeriod: state => state.licenseState === 'GRACE_PERIOD',
+        installationId: state => state.installationId,
     },
     mutations: {
         setToken(state, token) {
@@ -41,6 +54,15 @@ const store = new Store({
         clearUserData(state) {
             state.token = null;
             state.userData = {}
+        },
+        SET_LICENSE_STATE(state, payload) {
+            state.licenseState = payload.state
+            state.licenseIsReadOnly = payload.is_read_only ?? false
+            state.licenseDaysRemaining = payload.days_remaining ?? null
+            state.licenseLoginsRemaining = payload.logins_remaining ?? null
+        },
+        SET_INSTALLATION_ID(state, id) {
+            state.installationId = id
         },
     },
     actions: {
@@ -122,11 +144,17 @@ const store = new Store({
             }
         },
         logout({ commit }) {
-            // Clear user data in Vuex store
-            router.push({
-                name: 'Login'
-            })
+            router.push({ name: 'Login' })
             commit('clearUserData');
+        },
+        async fetchLicenseStatus({ commit }) {
+            try {
+                const resp = await apiClient.get('/api/license/status')
+                commit('SET_LICENSE_STATE', resp.data.state)
+                commit('SET_INSTALLATION_ID', resp.data.installation_id)
+            } catch (e) {
+                // License check failed — non-blocking
+            }
         },
 
     },

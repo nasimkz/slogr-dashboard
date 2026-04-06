@@ -1,11 +1,10 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
-// import HelloWorld from './components/HelloWorld.vue'
+import LicenseBanner from './components/shared/LicenseBanner.vue'
 </script>
 
 <template>
- 
-
+ <LicenseBanner />
  <router-view></router-view>
 </template>
 
