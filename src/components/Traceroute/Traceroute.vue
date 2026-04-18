@@ -81,10 +81,29 @@
                                                 <span class="text-muted" v-else>* * *</span>
                                             </td>
                                             <td>
-                                                <span v-if="tr.asn" class="asn-badge" :class="asnClass(tr.asn)">
-                                                    {{ tr.asn }}
-                                                </span>
-                                                <span v-else class="asn-badge asn-unknown">—</span>
+                                                <template v-if="tr.asn_name === 'PRIVATE'">
+                                                    <span class="asn-badge asn-private"
+                                                          title="RFC1918 / CGNAT / loopback / link-local — no public ASN">
+                                                        PRIVATE
+                                                    </span>
+                                                </template>
+                                                <template v-else-if="tr.asn">
+                                                    <span class="asn-badge" :class="asnClass(tr.asn)">
+                                                        AS{{ tr.asn }}
+                                                    </span>
+                                                    <small v-if="tr.asn_name" class="d-block text-muted mt-1 asn-name">
+                                                        {{ tr.asn_name }}
+                                                    </small>
+                                                </template>
+                                                <template v-else-if="tr.address">
+                                                    <span class="asn-badge asn-unknown"
+                                                          title="Public IP but ASN lookup unavailable">
+                                                        AS&#8209;UNKNOWN
+                                                    </span>
+                                                </template>
+                                                <template v-else>
+                                                    <span class="asn-badge asn-unknown">—</span>
+                                                </template>
                                             </td>
                                             <td><p class="tableP">{{ tr.hostname || '—' }}</p></td>
                                             <td>
@@ -240,4 +259,6 @@ export default {
 .asn-color-8  { background: #fff8e1; color: #f57f17; }
 .asn-color-9  { background: #efebe9; color: #4e342e; }
 .asn-unknown  { background: #f5f5f5; color: #9e9e9e; }
+.asn-private  { background: #eef1f6; color: #4a5568; font-style: italic; }
+.asn-name     { font-size: 10px; letter-spacing: 0.2px; }
 </style>
